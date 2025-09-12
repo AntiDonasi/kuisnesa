@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+jinja2
+pydantic
+python-dotenv
+itsdangerous
+httpx
+qrcode[pil]
+pandas
+matplotlib
+wordcloud
+python-multipart
