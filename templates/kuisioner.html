@@ -8,6 +8,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ kuisioner.title }}</h1>
+                    <!-- Added description display -->
+                    <p class="text-gray-600 mb-4">{{ kuisioner.description }}</p>
                     <p class="text-gray-600 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -65,6 +67,14 @@
                     </div>
                 </div>
                 
+                <!-- Added media field for images/videos -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Media (Opsional)</label>
+                    <input type="text" name="media" placeholder="URL Gambar atau Video..."
+                           class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm">
+                    <p class="text-xs text-gray-500 mt-1">Masukkan URL gambar atau video untuk melengkapi pertanyaan</p>
+                </div>
+                
                 <button type="submit" 
                         class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +86,7 @@
         </div>
 
         <!-- Questions List -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center">
                     <div class="bg-gradient-to-r from-orange-500 to-red-500 p-3 rounded-xl mr-4">
@@ -140,6 +150,55 @@
             </div>
             {% endif %}
         </div>
+
+        <!-- Added share section with URL and QR code -->
+        <!-- Share Section -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+            <div class="flex items-center mb-6">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 p-3 rounded-xl mr-4">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Bagikan Kuisioner</h2>
+                    <p class="text-gray-600">Sebarkan kuisioner untuk mengumpulkan respons</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Link Kuisioner</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="{{ share_url }}" readonly
+                                   class="flex-1 px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-mono text-sm">
+                            <button onclick="copyToClipboard('{{ share_url }}')" 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl transition-colors duration-200 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                Salin
+                            </button>
+                        </div>
+                    </div>
+                    <a href="{{ share_url }}" target="_blank"
+                       class="inline-flex items-center bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl transition-colors duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        Buka Kuisioner
+                    </a>
+                </div>
+                <div class="text-center">
+                    <div class="inline-block bg-white p-4 rounded-2xl shadow-lg">
+                        <img src="{{ qr_path }}" alt="QR Code Kuisioner" 
+                             class="max-w-[200px] rounded-xl border-4 border-gray-100">
+                    </div>
+                    <p class="text-sm text-gray-600 mt-3">Scan QR Code untuk akses cepat</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -154,5 +213,18 @@ document.getElementById('questionType').addEventListener('change', function() {
         optionsField.style.display = 'none';
     }
 });
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success feedback
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Tersalin!';
+        setTimeout(() => {
+            button.innerHTML = originalText;
+        }, 2000);
+    });
+}
 </script>
 {% endblock %}
+    
