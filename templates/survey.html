@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ kuisioner.title }}</h2>
+<p>{{ kuisioner.description }}</p>
+
+<form method="post">
+  <label>Nama</label><br>
+  <input type="text" name="nama" required><br>
+  <label>Email</label><br>
+  <input type="email" name="email" required><br>
+
+  <h3>Pertanyaan</h3>
+  {% for q in kuisioner.questions %}
+  <div style="margin:10px; padding:10px; border:1px solid #ccc; border-radius:10px;">
+    <p><b>{{ q.text }}</b></p>
+    {% if q.qtype == "short_text" %}
+      <input type="text" name="q_{{ q.id }}">
+    {% elif q.qtype == "paragraph" %}
+      <textarea name="q_{{ q.id }}"></textarea>
+    {% elif q.qtype == "single_choice" %}
+      {% set opts = q.options|safe|loads %}
+      {% for o in opts %}
+        <input type="radio" name="q_{{ q.id }}" value="{{ o }}"> {{ o }}<br>
+      {% endfor %}
+    {% elif q.qtype == "multi_choice" %}
+      {% set opts = q.options|safe|loads %}
+      {% for o in opts %}
+        <input type="checkbox" name="q_{{ q.id }}" value="{{ o }}"> {{ o }}<br>
+      {% endfor %}
+    {% elif q.qtype == "rating" %}
+      {% for i in range(1,6) %}
+        <input type="radio" name="q_{{ q.id }}" value="{{ i }}"> {{ i }}
+      {% endfor %}
+    {% endif %}
+  </div>
+  {% endfor %}
+  <button type="submit">Kirim</button>
+</form>
+{% endblock %}
