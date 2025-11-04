@@ -83,3 +83,28 @@ def stats(request: Request, kid: int, db: Session = Depends(get_db)):
     chart = utils.chart_distribution(res, f"chart_{kid}.png")
     wc = utils.generate_wordcloud(res, f"wc_{kid}.png")
     return templates.TemplateResponse("stats.html", {"request": request, "chart": "/" + chart, "wc": "/" + wc})
+
+@app.get("/kuisioner/{kid}/analytics")
+def text_analytics(kid: int, db: Session = Depends(get_db)):
+    """
+    Comprehensive text analytics endpoint
+    Returns: LDA topics, keywords, sentiment analysis, and text statistics
+    """
+    res = crud.get_responses_by_kuisioner(db, kid)
+
+    if not res:
+        return {"error": "No responses found for this kuisioner"}
+
+    # Perform all text analytics
+    topics = utils.lda_topic_modeling(res, n_topics=3, n_words=5)
+    keywords = utils.extract_keywords(res, top_n=10)
+    sentiment = utils.analyze_sentiment(res)
+    stats = utils.text_statistics(res)
+
+    return {
+        "kuisioner_id": kid,
+        "lda_topics": topics,
+        "keywords": keywords,
+        "sentiment_analysis": sentiment,
+        "text_stats": stats
+    }
