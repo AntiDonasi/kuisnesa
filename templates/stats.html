@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between flex-wrap gap-4">
                 <div class="flex items-center">
                     <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-xl mr-6">
                         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -12,17 +12,196 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Statistik Kuisioner</h1>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">📊 Analisis Kuisioner</h1>
                         <h2 class="text-xl text-gray-600">{{ kuisioner.title }}</h2>
                     </div>
                 </div>
                 <div class="hidden md:block">
                     <div class="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl text-center">
-                        <div class="text-sm font-medium">Analisis Data</div>
-                        <div class="text-xs opacity-90">Real-time Statistics</div>
+                        <div class="text-sm font-medium">🤖 AI-Powered Analytics</div>
+                        <div class="text-xs opacity-90">Real-time Text Processing</div>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Text Statistics Overview Cards -->
+        {% if text_stats and 'error' not in text_stats %}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-3xl font-bold">{{ text_stats.total_responses }}</div>
+                    <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <div class="text-sm opacity-90 font-medium">Total Responden</div>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-3xl font-bold">{{ text_stats.avg_words }}</div>
+                    <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                    </svg>
+                </div>
+                <div class="text-sm opacity-90 font-medium">Rata-rata Kata</div>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-3xl font-bold">{{ text_stats.total_words }}</div>
+                    <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="text-sm opacity-90 font-medium">Total Kata</div>
+            </div>
+
+            <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-3xl font-bold">{{ text_stats.avg_chars }}</div>
+                    <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </div>
+                <div class="text-sm opacity-90 font-medium">Rata-rata Karakter</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Sentiment Analysis Section -->
+        {% if sentiment and sentiment.total > 0 %}
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
+            <div class="flex items-center mb-6">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-500 p-3 rounded-xl mr-4">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">🎭 Analisis Sentimen</h3>
+                    <p class="text-gray-600 text-sm">Distribusi emosi responden</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                {% set total = sentiment.summary.positive + sentiment.summary.neutral + sentiment.summary.negative %}
+                {% set pos_pct = (sentiment.summary.positive / total * 100) | round(1) if total > 0 else 0 %}
+                {% set neu_pct = (sentiment.summary.neutral / total * 100) | round(1) if total > 0 else 0 %}
+                {% set neg_pct = (sentiment.summary.negative / total * 100) | round(1) if total > 0 else 0 %}
+
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border-2 border-green-200 hover:border-green-300 transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-4xl">😊</div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-green-600">{{ sentiment.summary.positive }}</div>
+                            <div class="text-sm text-green-600 font-medium">{{ pos_pct }}%</div>
+                        </div>
+                    </div>
+                    <div class="text-lg font-semibold text-green-700 mb-2">Positif</div>
+                    <div class="bg-green-200 h-3 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 h-full transition-all duration-1000" style="width: {{ pos_pct }}%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 border-2 border-gray-200 hover:border-gray-300 transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-4xl">😐</div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-gray-600">{{ sentiment.summary.neutral }}</div>
+                            <div class="text-sm text-gray-600 font-medium">{{ neu_pct }}%</div>
+                        </div>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-700 mb-2">Netral</div>
+                    <div class="bg-gray-200 h-3 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-gray-400 to-gray-500 h-full transition-all duration-1000" style="width: {{ neu_pct }}%"></div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 border-2 border-red-200 hover:border-red-300 transition-all">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-4xl">😞</div>
+                        <div class="text-right">
+                            <div class="text-3xl font-bold text-red-600">{{ sentiment.summary.negative }}</div>
+                            <div class="text-sm text-red-600 font-medium">{{ neg_pct }}%</div>
+                        </div>
+                    </div>
+                    <div class="text-lg font-semibold text-red-700 mb-2">Negatif</div>
+                    <div class="bg-red-200 h-3 rounded-full overflow-hidden">
+                        <div class="bg-gradient-to-r from-red-500 to-red-600 h-full transition-all duration-1000" style="width: {{ neg_pct }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- LDA Topics & Keywords Row -->
+        <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <!-- LDA Topic Modeling -->
+            {% if topics and 'error' not in topics %}
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+                <div class="flex items-center mb-6">
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-500 p-3 rounded-xl mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">🔍 Tema Utama (LDA)</h3>
+                        <p class="text-gray-600 text-sm">{{ topics.n_responses }} responses analyzed</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    {% for topic in topics.topics %}
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-100 hover:border-indigo-200 transition-all">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-lg font-bold text-indigo-700">📌 Topic {{ topic.topic_id }}</div>
+                            <div class="bg-indigo-200 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">
+                                Top {{ topic.words|length }} Keywords
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            {% for word in topic.words %}
+                            <span class="bg-white text-indigo-700 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm border border-indigo-200 hover:bg-indigo-100 transition-all">
+                                {{ word }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Keywords Extraction -->
+            {% if keywords and keywords.keywords|length > 0 %}
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+                <div class="flex items-center mb-6">
+                    <div class="bg-gradient-to-r from-yellow-500 to-orange-500 p-3 rounded-xl mr-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">🏷️ Kata Kunci (TF-IDF)</h3>
+                        <p class="text-gray-600 text-sm">Top keywords by relevance</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    {% for kw in keywords.keywords %}
+                    {% set size_class = 'text-2xl' if loop.index <= 3 else ('text-xl' if loop.index <= 6 else 'text-lg') %}
+                    {% set color_class = 'from-yellow-400 to-orange-400' if loop.index <= 3 else ('from-orange-400 to-red-400' if loop.index <= 6 else 'from-red-400 to-pink-400') %}
+                    <div class="bg-gradient-to-r {{ color_class }} text-white px-5 py-3 rounded-xl {{ size_class }} font-bold shadow-lg hover:shadow-2xl transform hover:scale-110 transition-all duration-300 cursor-pointer">
+                        {{ kw.word }}
+                        <span class="text-xs opacity-80 ml-1">({{ kw.score|round(2) }})</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Charts Section -->
@@ -36,12 +215,12 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">Distribusi Jawaban</h3>
-                        <p class="text-gray-600 text-sm">Grafik analisis respons kuisioner</p>
+                        <h3 class="text-xl font-bold text-gray-900">📊 Distribusi Jawaban</h3>
+                        <p class="text-gray-600 text-sm">Grafik analisis respons</p>
                     </div>
                 </div>
                 <div class="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border-2 border-gray-100 hover:border-blue-200 transition-all duration-300">
-                    <img src="{{ chart }}" alt="Grafik Jawaban" 
+                    <img src="{{ chart }}" alt="Grafik Jawaban"
                          class="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
                 </div>
             </div>
@@ -55,48 +234,72 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">Wordcloud Jawaban</h3>
-                        <p class="text-gray-600 text-sm">Visualisasi kata-kata populer</p>
+                        <h3 class="text-xl font-bold text-gray-900">☁️ Wordcloud</h3>
+                        <p class="text-gray-600 text-sm">Visualisasi kata populer</p>
                     </div>
                 </div>
                 <div class="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border-2 border-gray-100 hover:border-orange-200 transition-all duration-300">
-                    <img src="{{ wc }}" alt="Wordcloud" 
+                    <img src="{{ wc }}" alt="Wordcloud"
                          class="w-full h-auto rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
                 </div>
             </div>
         </div>
 
-        <!-- Export Section -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <div class="bg-gradient-to-r from-green-500 to-teal-500 p-3 rounded-xl mr-4">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        <!-- Actions Section -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- Export CSV -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="bg-gradient-to-r from-green-500 to-teal-500 p-3 rounded-xl mr-4">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Export Data CSV</h3>
+                            <p class="text-gray-600 text-sm">Download hasil kuisioner</p>
+                        </div>
+                    </div>
+                    <a href="/kuisioner/{{ kuisioner.id }}/export"
+                       class="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-gray-900">Export Data</h3>
-                        <p class="text-gray-600">Download hasil kuisioner dalam format CSV</p>
-                    </div>
+                        <span>Download</span>
+                    </a>
                 </div>
-                <a href="/kuisioner/{{ kuisioner.id }}/export" 
-                   class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-3 group">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    <span>Download CSV</span>
-                    <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
+            </div>
+
+            <!-- API Analytics -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-xl mr-4">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">API Analytics</h3>
+                            <p class="text-gray-600 text-sm">JSON endpoint untuk integrasi</p>
+                        </div>
+                    </div>
+                    <a href="/kuisioner/{{ kuisioner.id }}/analytics" target="_blank"
+                       class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>View JSON</span>
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- Back Navigation -->
         <div class="mt-8 text-center">
-            <a href="/kuisioner/{{ kuisioner.id }}" 
-               class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200">
+            <a href="/kuisioner/{{ kuisioner.id }}"
+               class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 bg-white px-6 py-3 rounded-xl shadow-md hover:shadow-lg">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -105,4 +308,25 @@
         </div>
     </div>
 </div>
+
+<style>
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bg-white\/80 {
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .hover-scale:hover {
+        transform: scale(1.05);
+    }
+</style>
 {% endblock %}
