@@ -1,14 +1,19 @@
 from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-import models, crud, auth, utils
+import models, crud, auth, utils, os
 from database import Base, engine, get_db
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Kuisioner UNESA")
 templates = Jinja2Templates(directory="templates")
+
+# Mount static files
+os.makedirs("static/charts", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
@@ -18,7 +23,13 @@ def index(request: Request):
 async def callback(code: str, state: str, db: Session = Depends(get_db)):
     info = await auth.get_user_info(code)
     role = auth.determine_role(info["email"])
-    user = crud.get_or_create_user(db, email=info["email"], nama=info["name"], role=role)
+    user = crud.get_or_create_user(
+        db,
+        email=info["email"],
+        nama=info.get("name", info["email"]),
+        role=role,
+        photo_url=info.get("picture")
+    )
     token = auth.serializer.dumps({"email": info["email"]})
     resp = RedirectResponse("/dashboard")
     resp.set_cookie("session", token, httponly=True)
@@ -59,7 +70,7 @@ def survey(request: Request, kid: int, db: Session = Depends(get_db)):
 @app.post("/survey/{kid}")
 async def submit_survey(request: Request, kid: int, nama: str = Form(...), email: str = Form(...), db: Session = Depends(get_db)):
     form = await request.form()
-    user = crud.get_or_create_user(db, email=email, nama=nama, role="public")
+    user = crud.get_or_create_user(db, email=email, nama=nama, role="public", photo_url=None)
     k = crud.get_kuisioner(db, kid)
     for q in k.questions:
         ans = form.get(f"q_{q.id}")
@@ -84,6 +95,7 @@ def stats(request: Request, kid: int, db: Session = Depends(get_db)):
 
     # Generate charts
     chart = utils.chart_distribution(res, f"chart_{kid}.png")
+    pie = utils.create_pie_chart(res, f"pie_{kid}.png")
     wc = utils.generate_wordcloud(res, f"wc_{kid}.png")
 
     # Get text analytics
@@ -96,6 +108,7 @@ def stats(request: Request, kid: int, db: Session = Depends(get_db)):
         "request": request,
         "kuisioner": k,
         "chart": "/" + chart,
+        "pie": "/" + pie,
         "wc": "/" + wc,
         "topics": topics,
         "keywords": keywords,

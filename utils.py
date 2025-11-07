@@ -143,23 +143,129 @@ def export_responses(responses, filename: str):
     return path
 
 def chart_distribution(responses, filename: str):
-    counts = {}
-    for r in responses:
-        counts[r.answer] = counts.get(r.answer, 0) + 1
-    fig, ax = plt.subplots()
-    ax.bar(counts.keys(), counts.values())
+    """Create distribution chart from responses"""
+    if not responses:
+        # Create empty chart
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.text(0.5, 0.5, 'No data available', ha='center', va='center', fontsize=20, color='gray')
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis('off')
+    else:
+        counts = {}
+        for r in responses:
+            answer = str(r.answer) if r.answer else "No answer"
+            counts[answer] = counts.get(answer, 0) + 1
+
+        # Sort by count
+        sorted_counts = dict(sorted(counts.items(), key=lambda x: x[1], reverse=True)[:20])  # Top 20
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+        bars = ax.bar(range(len(sorted_counts)), list(sorted_counts.values()),
+                      color='#3b82f6', edgecolor='#1e40af', linewidth=1.5)
+
+        # Styling
+        ax.set_xticks(range(len(sorted_counts)))
+        ax.set_xticklabels([k[:30] + '...' if len(k) > 30 else k for k in sorted_counts.keys()],
+                          rotation=45, ha='right', fontsize=10)
+        ax.set_ylabel('Jumlah Respons', fontsize=12, fontweight='bold')
+        ax.set_title('Distribusi Jawaban Responden', fontsize=14, fontweight='bold', pad=20)
+        ax.grid(axis='y', alpha=0.3, linestyle='--')
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+        # Add value labels on bars
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                   f'{int(height)}',
+                   ha='center', va='bottom', fontsize=9, fontweight='bold')
+
     path = os.path.join(BASE_DIR, "charts", filename)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     plt.tight_layout()
-    plt.savefig(path)
+    plt.savefig(path, dpi=150, bbox_inches='tight', facecolor='white')
     plt.close()
     return path
 
 def generate_wordcloud(responses, filename: str):
+    """Generate word cloud from text responses"""
     texts = preprocess_responses(responses)
-    text = " ".join(texts) if texts else "no data"
-    wc = WordCloud(width=800, height=400, background_color="white").generate(text)
+    text = " ".join(texts) if texts else "no data available"
+
+    if len(text.strip()) < 10:
+        text = "no sufficient data for wordcloud generation"
+
+    wc = WordCloud(
+        width=1200,
+        height=600,
+        background_color="white",
+        colormap='viridis',
+        max_words=100,
+        relative_scaling=0.5,
+        min_font_size=10
+    ).generate(text)
+
     path = os.path.join(BASE_DIR, "charts", filename)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    wc.to_file(path)
+
+    # Save with matplotlib for better quality
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.imshow(wc, interpolation='bilinear')
+    ax.axis('off')
+    ax.set_title('Word Cloud - Kata Populer dalam Jawaban', fontsize=14, fontweight='bold', pad=20)
+    plt.tight_layout()
+    plt.savefig(path, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
+
+    return path
+
+# ============= ADDITIONAL VISUALIZATIONS =============
+def create_pie_chart(responses, filename: str):
+    """Create pie chart for response distribution"""
+    if not responses:
+        fig, ax = plt.subplots(figsize=(8, 8))
+        ax.text(0.5, 0.5, 'No data available', ha='center', va='center', fontsize=20, color='gray')
+        ax.axis('off')
+    else:
+        counts = {}
+        for r in responses:
+            answer = str(r.answer) if r.answer else "No answer"
+            counts[answer] = counts.get(answer, 0) + 1
+
+        # Limit to top 10 for readability
+        sorted_counts = dict(sorted(counts.items(), key=lambda x: x[1], reverse=True)[:10])
+
+        fig, ax = plt.subplots(figsize=(10, 8))
+        colors = plt.cm.Set3(range(len(sorted_counts)))
+        wedges, texts, autotexts = ax.pie(
+            sorted_counts.values(),
+            labels=[k[:20] + '...' if len(k) > 20 else k for k in sorted_counts.keys()],
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=colors,
+            textprops={'fontsize': 10, 'weight': 'bold'}
+        )
+
+        ax.set_title('Distribusi Jawaban (Pie Chart)', fontsize=14, fontweight='bold', pad=20)
+
+    path = os.path.join(BASE_DIR, "charts", filename)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    plt.tight_layout()
+    plt.savefig(path, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
+    return path
+
+def create_response_timeline(responses, filename: str):
+    """Create timeline of responses (if response has timestamp)"""
+    # This is a placeholder - would need timestamp field in Response model
+    path = os.path.join(BASE_DIR, "charts", filename)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.text(0.5, 0.5, 'Timeline visualization\n(requires timestamp data)',
+            ha='center', va='center', fontsize=16, color='gray')
+    ax.axis('off')
+    plt.savefig(path, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
     return path

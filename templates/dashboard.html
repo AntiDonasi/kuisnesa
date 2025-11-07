@@ -5,14 +5,31 @@
         <!-- Welcome Header -->
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
             <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Selamat Datang, {{ user.nama }}!</h1>
-                    <p class="text-gray-600 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                        </svg>
-                        {{ user.email }}
-                    </p>
+                <div class="flex items-center space-x-4">
+                    <!-- Profile Photo -->
+                    <div class="flex-shrink-0">
+                        {% if user.photo_url %}
+                        <img src="{{ user.photo_url }}" alt="{{ user.nama }}"
+                             class="w-20 h-20 rounded-full border-4 border-blue-500 shadow-lg object-cover">
+                        {% else %}
+                        <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                            {{ user.nama[0]|upper if user.nama else 'U' }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <!-- User Info -->
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Selamat Datang, {{ user.nama }}!</h1>
+                        <p class="text-gray-600 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                            </svg>
+                            {{ user.email }}
+                        </p>
+                        <span class="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                            {{ user.role|upper }}
+                        </span>
+                    </div>
                 </div>
                 <div class="hidden md:block">
                     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl">

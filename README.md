@@ -5,17 +5,38 @@ Oke, aku bikinkan README.md final untuk GitHub yang sudah ada: deskripsi project
 
 # 🎓 KuisNesa – Platform Kuisioner UNESA
 
-KuisNesa adalah aplikasi **kuisioner digital** berbasis **FastAPI + PostgreSQL** dengan integrasi login Google (restricted ke email UNESA).  
-Fitur utama:
-- Login dengan akun UNESA (`@unesa.ac.id` / `@mhs.unesa.ac.id`)
-- Membuat & mengedit kuisioner (deskripsi, tema, gambar header, akses publik/privat)
-- Tambah pertanyaan dengan tipe: **isian singkat, paragraf, pilih salah satu, pilih beberapa, rating**
+KuisNesa adalah aplikasi **kuisioner digital** berbasis **FastAPI + PostgreSQL** dengan integrasi login Google (restricted ke email UNESA).
+
+## ✨ Fitur Utama
+
+### 🔐 Autentikasi & Profil
+- Login dengan akun Google UNESA (`@unesa.ac.id` / `@mhs.unesa.ac.id`)
+- Tampilan nama lengkap dan foto profil dari Google
+- Role-based access (Mahasiswa/Dosen)
+
+### 📝 Kuisioner
+- Membuat & mengedit kuisioner dengan deskripsi lengkap
+- Tambah pertanyaan dengan berbagai tipe:
+  - Isian singkat
+  - Paragraf
+  - Pilih salah satu (single choice)
+  - Pilih beberapa (multi choice)
+  - Rating
 - Upload media pendukung (gambar/video) per pertanyaan
-- Wajib isi (required) per pertanyaan
-- Mengisi survey publik dengan progress bar & validasi required
-- Statistik jawaban lengkap: grafik batang, pie chart, distribusi rating, word cloud, dll.
-- Export hasil kuisioner ke **CSV**
+- Validasi required per pertanyaan
+- Progress bar saat mengisi survey
+
+### 📊 Analisis & Visualisasi (AI-Powered)
+- **LDA Topic Modeling** - Ekstrak tema utama dari jawaban
+- **Sentiment Analysis** - Analisis sentimen positif/negatif/netral
+- **Keyword Extraction** - Top keywords menggunakan TF-IDF
+- **Text Statistics** - Rata-rata kata, karakter, dan total respons
+- **Bar Chart** - Distribusi jawaban dengan grafik batang
+- **Pie Chart** - Persentase distribusi jawaban
+- **Word Cloud** - Visualisasi kata populer
+- Export hasil ke **CSV**
 - QR Code untuk berbagi survey
+- JSON API endpoint untuk integrasi
 
 ---
 
@@ -41,49 +62,39 @@ pip install -r requirements.txt
 
 ---
 
-🛢 Setup Database PostgreSQL
+## 🛢 Setup Database PostgreSQL
 
-1. Buat database & user
+### Quick Setup:
 
+```bash
+# 1. Install PostgreSQL
+sudo apt install postgresql postgresql-contrib
+
+# 2. Buat database & user
 sudo -u postgres psql
-
-CREATE DATABASE kuisnesa_db;
-CREATE USER kuisnesa_user WITH PASSWORD 'kuisnesa_pass';
-GRANT ALL PRIVILEGES ON DATABASE kuisnesa_db TO kuisnesa_user;
+CREATE DATABASE kuisioner_db;
+CREATE USER kuisioner_user WITH PASSWORD 'passwordku123';
+GRANT ALL PRIVILEGES ON DATABASE kuisioner_db TO kuisioner_user;
 \q
 
-2. Konfigurasi database.py
+# 3. Setup environment file
+cp .env.example .env
+nano .env  # Edit dengan kredensial yang benar
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+# 4. Setup tables
+python3 setup_database.py
+```
 
-DATABASE_URL = "postgresql://kuisnesa_user:kuisnesa_pass@localhost:5432/kuisnesa_db"
+### 📘 Panduan Lengkap:
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+Untuk panduan detail setup database, lihat: **[SETUP_DATABASE.md](SETUP_DATABASE.md)**
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-
-3. Generate tabel
-
-python3
-
-from database import Base, engine
-import models
-Base.metadata.create_all(bind=engine)
-
-Cek tabel:
-
-sudo -u postgres psql kuisnesa_db
-\dt
+Panduan lengkap mencakup:
+- ✅ Install PostgreSQL di berbagai OS (Ubuntu/Mac/Windows)
+- ✅ Konfigurasi user dan permissions
+- ✅ Troubleshooting common errors
+- ✅ Security best practices
+- ✅ Database schema lengkap
 
 
 ---
@@ -105,13 +116,23 @@ pm2 save
 
 ---
 
-📊 Statistik & Visualisasi
+## 📊 Statistik & Visualisasi
 
-Statistik jawaban per pertanyaan
+Akses halaman statistik untuk melihat analisis lengkap:
+- 📈 **Bar Chart** - Distribusi jawaban
+- 🥧 **Pie Chart** - Persentase per kategori
+- ☁️ **Word Cloud** - Kata populer
+- 🔍 **LDA Topics** - Tema utama (3 topik)
+- 🏷️ **Keywords** - Top 10 kata kunci (TF-IDF)
+- 🎭 **Sentiment** - Analisis emosi responden
+- 📊 **Text Stats** - Statistik text lengkap
 
-Grafik batang, pie chart
-
-Export hasil kuisioner ke CSV
+### API Endpoint:
+```
+GET /kuisioner/{id}/stats       # HTML page dengan visualisasi
+GET /kuisioner/{id}/analytics   # JSON data untuk integrasi
+GET /kuisioner/{id}/export      # Download CSV
+```
 
 
 
