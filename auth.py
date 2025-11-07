@@ -23,6 +23,7 @@ def get_login_url(state: str):
         f"&scope=openid%20email%20profile"
         f"&redirect_uri={REDIRECT_URI}"
         f"&state={state}"
+        f"&hd=unesa.ac.id"
     )
 
 async def get_user_info(code: str):

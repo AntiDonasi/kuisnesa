@@ -17,7 +17,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "login_url": auth.get_login_url("state")})
+    return templates.TemplateResponse("indeks.html", {"request": request, "login_url": auth.get_login_url("state-unesa")})
 
 @app.get("/auth/callback")
 async def callback(code: str, state: str = None, db: Session = Depends(get_db)):
