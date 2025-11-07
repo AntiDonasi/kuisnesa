@@ -3,12 +3,20 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import datetime
 from typing import Optional
+from fastapi import HTTPException
 
-def get_or_create_user(db: Session, email: str, nama: str, role: str = "mahasiswa"):
+def get_or_create_user(db: Session, email: str, nama: str, role: str = "user", photo_url: str = None):
     user = db.query(models.User).filter(models.User.email == email).first()
     if user:
+        # Update existing user's name and photo if provided
+        if nama:
+            user.nama = nama
+        if photo_url:
+            user.photo_url = photo_url
+        db.commit()
+        db.refresh(user)
         return user
-    u = models.User(email=email, nama=nama, role=role)
+    u = models.User(email=email, nama=nama, role=role, photo_url=photo_url)
     db.add(u)
     db.commit()
     db.refresh(u)
@@ -28,7 +36,7 @@ def add_question(db, kuisioner_id, text, qtype, options=None, media_url=None, re
         qtype=qtype,
         options=json.dumps(options) if options else None,
         media_url=media_url,
-        required=required   # ⬅️ gunakan nama kolom yang ada di models
+        required=required
     )
     db.add(question)
     db.commit()
@@ -43,8 +51,6 @@ def get_user_kuisioners(db: Session, uid: int):
 
 def get_response_statistics(db: Session, kid: int):
     """Get detailed response statistics with user information"""
-    
-    # Get responses with user names
     results = db.query(
         models.Response.answer,
         models.User.nama,
@@ -57,13 +63,10 @@ def get_response_statistics(db: Session, kid: int):
     ).filter(
         models.Question.kuisioner_id == kid
     ).all()
-    
     return results
 
-from fastapi import HTTPException
-
 def create_response(db: Session, user_id: int, question_id: int, answer: str):
-    # cek apakah sudah ada jawaban untuk user & question
+    # Check if response already exists
     existing = db.query(models.Response).filter_by(user_id=user_id, question_id=question_id).first()
     if existing:
         raise HTTPException(
@@ -140,8 +143,8 @@ def update_question(
     if options is not None:
         q.options = json.dumps(options) if isinstance(options, list) else options
     if media is not None:
-        q.media = media   # bisa berupa URL image
+        q.media = media
 
     db.commit()
     db.refresh(q)
-    return q    
+    return q

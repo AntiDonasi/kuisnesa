@@ -8,8 +8,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     nama = Column(String(100))
     email = Column(String(120), unique=True, index=True)
-    role = Column(String(20), default="mahasiswa")
-    foto_profil = Column(String(255), nullable=True)  # URL foto profil
+    role = Column(String(20), default="user")  # Unified user role
+    photo_url = Column(String(500), nullable=True)  # Google profile photo
 
     kuisioners = relationship("Kuisioner", back_populates="owner")
     responses = relationship("Response", back_populates="user")
@@ -22,7 +22,7 @@ class Kuisioner(Base):
     description = Column(Text)
     background = Column(String(200), default="white")
     theme = Column(String(50), default="light")
-    header_image = Column(String(300))  # ✅ header image
+    header_image = Column(String(300))  # Header image
     start_date = Column(DateTime, default=datetime.datetime.utcnow)
     end_date = Column(DateTime, nullable=True)
     access = Column(String(20), default="public")  # public / unesa_only
@@ -38,12 +38,12 @@ class Question(Base):
     kuisioner_id = Column(Integer, ForeignKey("kuisioners.id"))
     text = Column(Text, nullable=False)
     qtype = Column(String(50), default="short_text")
-    options = Column(Text)            # simpan JSON string
+    options = Column(Text)  # JSON string
     media_url = Column(String(300))
-    required = Column(Boolean, default=False)  # ✅ baru
+    required = Column(Boolean, default=False)
 
     kuisioner = relationship("Kuisioner", back_populates="questions")
-    responses = relationship("Response", back_populates="question")  # ✅ FIXED
+    responses = relationship("Response", back_populates="question")
 
 
 class Response(Base):

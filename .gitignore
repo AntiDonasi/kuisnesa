@@ -1,0 +1,27 @@
+
+# Environment variables (contains secrets)
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
+
+# Virtual environment
+venv/
+env/
+
+# Generated files
+static/charts/*.png
+static/charts/*.jpg
+
+# Database
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
