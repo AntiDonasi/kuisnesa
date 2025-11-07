@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, Form
+from fastapi import FastAPI, Request, Depends, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -67,9 +67,36 @@ def view_kuisioner(request: Request, kid: int, db: Session = Depends(get_db)):
     })
 
 @app.post("/kuisioner/{kid}/add_question")
-def add_question(kid: int, text: str = Form(...), qtype: str = Form("short_text"), options: str = Form(None), media: str = Form(None), db: Session = Depends(get_db)):
+async def add_question(
+    kid: int,
+    text: str = Form(...),
+    qtype: str = Form("short_text"),
+    options: str = Form(None),
+    media: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
     opts = options.split(",") if options else None
-    crud.add_question(db, kid, text, qtype, opts, media)
+
+    # Handle file upload
+    media_url = None
+    if media and media.filename:  # Check if file was actually uploaded
+        # Create media directory if it doesn't exist
+        os.makedirs("static/media", exist_ok=True)
+
+        # Generate unique filename
+        import uuid
+        file_extension = media.filename.split(".")[-1] if "." in media.filename else "jpg"
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = os.path.join("static/media", unique_filename)
+
+        # Save file
+        with open(file_path, "wb") as f:
+            content = await media.read()
+            f.write(content)
+
+        media_url = "/" + file_path
+
+    crud.add_question(db, kid, text, qtype, opts, media_url)
     return RedirectResponse(f"/kuisioner/{kid}", status_code=303)
 
 @app.get("/survey/{kid}", response_class=HTMLResponse)
