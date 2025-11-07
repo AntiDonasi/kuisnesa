@@ -1,5 +1,3 @@
-Oke, aku bikinkan README.md final untuk GitHub yang sudah ada: deskripsi project, setup FastAPI, cara install di VPS, setup PostgreSQL persis dengan kondisi database sekarang, dan cara run.
-
 
 ---
 
