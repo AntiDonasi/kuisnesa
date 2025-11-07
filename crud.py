@@ -8,7 +8,6 @@ from fastapi import HTTPException
 def get_or_create_user(db: Session, email: str, nama: str, role: str = "user", photo_url: str = None):
     user = db.query(models.User).filter(models.User.email == email).first()
     if user:
-        # Update existing user's name and photo if provided
         if nama:
             user.nama = nama
         if photo_url:
@@ -50,7 +49,6 @@ def get_user_kuisioners(db: Session, uid: int):
     return db.query(models.Kuisioner).filter(models.Kuisioner.owner_id == uid).all()
 
 def get_response_statistics(db: Session, kid: int):
-    """Get detailed response statistics with user information"""
     results = db.query(
         models.Response.answer,
         models.User.nama,
@@ -66,7 +64,6 @@ def get_response_statistics(db: Session, kid: int):
     return results
 
 def create_response(db: Session, user_id: int, question_id: int, answer: str):
-    # Check if response already exists
     existing = db.query(models.Response).filter_by(user_id=user_id, question_id=question_id).first()
     if existing:
         raise HTTPException(

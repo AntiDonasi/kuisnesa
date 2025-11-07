@@ -8,8 +8,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     nama = Column(String(100))
     email = Column(String(120), unique=True, index=True)
-    role = Column(String(20), default="user")  # Unified user role
-    photo_url = Column(String(500), nullable=True)  # Google profile photo
+    role = Column(String(20), default="user")
+    photo_url = Column(String(500), nullable=True)
 
     kuisioners = relationship("Kuisioner", back_populates="owner")
     responses = relationship("Response", back_populates="user")
@@ -22,10 +22,10 @@ class Kuisioner(Base):
     description = Column(Text)
     background = Column(String(200), default="white")
     theme = Column(String(50), default="light")
-    header_image = Column(String(300))  # Header image
+    header_image = Column(String(300))
     start_date = Column(DateTime, default=datetime.datetime.utcnow)
     end_date = Column(DateTime, nullable=True)
-    access = Column(String(20), default="public")  # public / unesa_only
+    access = Column(String(20), default="public")
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="kuisioners")
@@ -38,7 +38,7 @@ class Question(Base):
     kuisioner_id = Column(Integer, ForeignKey("kuisioners.id"))
     text = Column(Text, nullable=False)
     qtype = Column(String(50), default="short_text")
-    options = Column(Text)  # JSON string
+    options = Column(Text)
     media_url = Column(String(300))
     required = Column(Boolean, default=False)
 

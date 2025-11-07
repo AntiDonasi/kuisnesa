@@ -11,7 +11,6 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Kuisioner UNESA")
 templates = Jinja2Templates(directory="templates")
 
-# Mount static files
 os.makedirs("static/charts", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -53,8 +52,6 @@ def create_kuisioner(title: str = Form(...), description: str = Form(None), back
 @app.get("/kuisioner/{kid}", response_class=HTMLResponse)
 def view_kuisioner(request: Request, kid: int, db: Session = Depends(get_db)):
     k = crud.get_kuisioner(db, kid)
-
-    # Generate share URL and QR code
     base_url = os.getenv("BASE_URL", "https://kuisnesa.nauval.site")
     share_url = f"{base_url}/survey/{kid}"
     qr_path = utils.generate_qr_code(share_url, f"kuisioner_{kid}.png")
@@ -75,26 +72,19 @@ async def add_question(
     media: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
+    import uuid
     opts = options.split(",") if options else None
-
-    # Handle file upload
     media_url = None
-    if media and media.filename:  # Check if file was actually uploaded
-        # Create media directory if it doesn't exist
+
+    if media and media.filename:
         os.makedirs("static/media", exist_ok=True)
+        ext = media.filename.split(".")[-1] if "." in media.filename else "jpg"
+        fname = f"{uuid.uuid4()}.{ext}"
+        fpath = os.path.join("static/media", fname)
 
-        # Generate unique filename
-        import uuid
-        file_extension = media.filename.split(".")[-1] if "." in media.filename else "jpg"
-        unique_filename = f"{uuid.uuid4()}.{file_extension}"
-        file_path = os.path.join("static/media", unique_filename)
-
-        # Save file
-        with open(file_path, "wb") as f:
-            content = await media.read()
-            f.write(content)
-
-        media_url = "/" + file_path
+        with open(fpath, "wb") as f:
+            f.write(await media.read())
+        media_url = "/" + fpath
 
     crud.add_question(db, kid, text, qtype, opts, media_url)
     return RedirectResponse(f"/kuisioner/{kid}", status_code=303)
@@ -130,7 +120,6 @@ def stats(request: Request, kid: int, db: Session = Depends(get_db)):
     k = crud.get_kuisioner(db, kid)
     res = crud.get_responses_by_kuisioner(db, kid)
 
-    # Generate all visualizations
     chart = utils.chart_distribution(res, f"chart_{kid}.png")
     pie = utils.create_pie_chart(res, f"pie_{kid}.png")
     wc = utils.generate_wordcloud(res, f"wc_{kid}.png")
@@ -141,7 +130,6 @@ def stats(request: Request, kid: int, db: Session = Depends(get_db)):
     keyword_chart = utils.create_keyword_comparison_chart(res, f"keyword_chart_{kid}.png")
     stats_dashboard = utils.create_comprehensive_stats_chart(res, f"stats_dashboard_{kid}.png")
 
-    # Get text analytics
     topics = utils.lda_topic_modeling(res, n_topics=3, n_words=5) if len(res) >= 3 else None
     keywords = utils.extract_keywords(res, top_n=10)
     sentiment = utils.analyze_sentiment(res)
@@ -167,16 +155,10 @@ def stats(request: Request, kid: int, db: Session = Depends(get_db)):
 
 @app.get("/kuisioner/{kid}/analytics")
 def text_analytics(kid: int, db: Session = Depends(get_db)):
-    """
-    Comprehensive text analytics endpoint
-    Returns: LDA topics, keywords, sentiment analysis, and text statistics
-    """
     res = crud.get_responses_by_kuisioner(db, kid)
-
     if not res:
         return {"error": "No responses found for this kuisioner"}
 
-    # Perform all text analytics
     topics = utils.lda_topic_modeling(res, n_topics=3, n_words=5)
     keywords = utils.extract_keywords(res, top_n=10)
     sentiment = utils.analyze_sentiment(res)
