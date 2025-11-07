@@ -20,7 +20,7 @@ def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "login_url": auth.get_login_url("state")})
 
 @app.get("/auth/callback")
-async def callback(code: str, state: str, db: Session = Depends(get_db)):
+async def callback(code: str, state: str = None, db: Session = Depends(get_db)):
     info = await auth.get_user_info(code)
     role = auth.determine_role(info["email"])
     user = crud.get_or_create_user(
