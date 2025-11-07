@@ -1,4 +1,5 @@
-import os, httpx
+import os
+import httpx
 from itsdangerous import URLSafeSerializer
 from fastapi import HTTPException
 from dotenv import load_dotenv
@@ -8,17 +9,17 @@ load_dotenv()
 
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/callback")
+REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
 
 serializer = URLSafeSerializer(os.getenv("SECRET_KEY", "supersecret"))
 
 def get_login_url(state: str):
     return (
         "https://accounts.google.com/o/oauth2/v2/auth"
-        f"?client_id={CLIENT_ID}"
-        f"&response_type=code"
-        f"&scope=openid%20email%20profile"
+        f"?response_type=code"
+        f"&client_id={CLIENT_ID}"
         f"&redirect_uri={REDIRECT_URI}"
+        f"&scope=openid%20email%20profile"
         f"&state={state}"
         f"&hd=unesa.ac.id"
     )
