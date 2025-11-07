@@ -9,6 +9,7 @@ class User(Base):
     nama = Column(String(100))
     email = Column(String(120), unique=True, index=True)
     role = Column(String(20), default="mahasiswa")  # mahasiswa/dosen/public
+    photo_url = Column(String(500), nullable=True)  # Google profile photo
 
     kuisioners = relationship("Kuisioner", back_populates="owner")
     responses = relationship("Response", back_populates="user")
