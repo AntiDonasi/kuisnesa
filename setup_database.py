@@ -1,74 +1,141 @@
 #!/usr/bin/env python3
 """
-Setup Database Script for KuisNesa
-This script will create all necessary tables in PostgreSQL database
-Updated for enhanced version with text analytics and visualizations
+Setup Database Script for KuisNesa - Enhanced with Auto-Migration
+This script will:
+1. Create all necessary tables in PostgreSQL database
+2. Auto-detect missing columns
+3. Auto-add missing columns to sync with models
+4. Verify database schema matches models
 """
 
 from database import Base, engine
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text, Column
 import models
+from typing import Dict, List, Set
 
-def print_table_structure():
-    """Print detailed table structure after creation"""
+def get_model_columns(model_class) -> Dict[str, Column]:
+    """Get all columns from a SQLAlchemy model"""
+    return {col.name: col for col in model_class.__table__.columns}
+
+def get_database_columns(table_name: str) -> Set[str]:
+    """Get all columns from database table"""
     inspector = inspect(engine)
+    try:
+        columns = inspector.get_columns(table_name)
+        return {col['name'] for col in columns}
+    except Exception:
+        return set()
 
-    print("\n📊 Database Structure Details:\n")
+def get_column_type_sql(column: Column) -> str:
+    """Convert SQLAlchemy column type to SQL type"""
+    col_type = str(column.type)
 
-    # Users table
-    print("👥 USERS Table:")
-    print("   Fields:")
-    print("   • id (Integer, Primary Key)")
-    print("   • nama (String, 100)")
-    print("   • email (String, 120, Unique, Indexed)")
-    print("   • role (String, 20, default='user') - Unified role for all users")
-    print("   • photo_url (String, 500, Nullable) - Google profile photo")
-    print("   Relationships:")
-    print("   • One-to-Many with Kuisioners (owner)")
-    print("   • One-to-Many with Responses")
+    # Map common types
+    type_mapping = {
+        'INTEGER': 'INTEGER',
+        'VARCHAR': lambda: f'VARCHAR({column.type.length})' if hasattr(column.type, 'length') and column.type.length else 'VARCHAR(255)',
+        'TEXT': 'TEXT',
+        'BOOLEAN': 'BOOLEAN',
+        'DATETIME': 'TIMESTAMP',
+        'TIMESTAMP': 'TIMESTAMP',
+    }
 
-    print("\n📝 KUISIONERS Table:")
-    print("   Fields:")
-    print("   • id (Integer, Primary Key)")
-    print("   • title (String, 200, Required)")
-    print("   • description (Text)")
-    print("   • background (String, 200, default='white')")
-    print("   • theme (String, 50, default='light')")
-    print("   • header_image (String, 300) - NEW: Header image URL")
-    print("   • start_date (DateTime, default=now)")
-    print("   • end_date (DateTime, Nullable)")
-    print("   • access (String, 20, default='public')")
-    print("   • owner_id (Integer, Foreign Key → users.id)")
-    print("   Relationships:")
-    print("   • Many-to-One with User (owner)")
-    print("   • One-to-Many with Questions")
+    for key, value in type_mapping.items():
+        if key in col_type.upper():
+            return value() if callable(value) else value
 
-    print("\n❓ QUESTIONS Table:")
-    print("   Fields:")
-    print("   • id (Integer, Primary Key)")
-    print("   • kuisioner_id (Integer, Foreign Key → kuisioners.id)")
-    print("   • text (Text, Required)")
-    print("   • qtype (String, 50, default='short_text')")
-    print("   • options (Text) - JSON string for multiple choice")
-    print("   • media_url (String, 300) - Image/video URL")
-    print("   • required (Boolean, default=False) - NEW: Required field flag")
-    print("   Relationships:")
-    print("   • Many-to-One with Kuisioner")
-    print("   • One-to-Many with Responses")
+    return 'TEXT'  # Default fallback
 
-    print("\n💬 RESPONSES Table:")
-    print("   Fields:")
-    print("   • id (Integer, Primary Key)")
-    print("   • answer (Text, Required)")
-    print("   • user_id (Integer, Foreign Key → users.id)")
-    print("   • question_id (Integer, Foreign Key → questions.id)")
-    print("   Relationships:")
-    print("   • Many-to-One with User")
-    print("   • Many-to-One with Question")
-    print("   Constraints:")
-    print("   • Unique constraint on (user_id, question_id) - Prevents duplicates")
+def detect_missing_columns() -> Dict[str, List[str]]:
+    """Detect missing columns by comparing models with database"""
+    print("\n🔍 Checking for missing columns...")
 
-def verify_database():
+    missing_columns = {}
+
+    # Define models to check
+    models_to_check = {
+        'users': models.User,
+        'kuisioners': models.Kuisioner,
+        'questions': models.Question,
+        'responses': models.Response
+    }
+
+    for table_name, model_class in models_to_check.items():
+        model_cols = get_model_columns(model_class)
+        db_cols = get_database_columns(table_name)
+
+        missing = set(model_cols.keys()) - db_cols
+
+        if missing:
+            missing_columns[table_name] = list(missing)
+            print(f"   ⚠️  {table_name}: Missing {len(missing)} column(s): {', '.join(missing)}")
+        else:
+            print(f"   ✓ {table_name}: All columns present")
+
+    return missing_columns
+
+def add_missing_columns(missing_columns: Dict[str, List[str]]) -> bool:
+    """Add missing columns to database tables"""
+    if not missing_columns:
+        print("\n✅ No missing columns - database is in sync!")
+        return True
+
+    print(f"\n🔧 Adding {sum(len(cols) for cols in missing_columns.values())} missing column(s)...")
+
+    models_map = {
+        'users': models.User,
+        'kuisioners': models.Kuisioner,
+        'questions': models.Question,
+        'responses': models.Response
+    }
+
+    try:
+        with engine.connect() as conn:
+            for table_name, col_names in missing_columns.items():
+                model_class = models_map[table_name]
+                model_cols = get_model_columns(model_class)
+
+                for col_name in col_names:
+                    column = model_cols[col_name]
+                    col_type = get_column_type_sql(column)
+
+                    # Build ALTER TABLE statement
+                    nullable = "NULL" if column.nullable else "NOT NULL"
+                    default = ""
+
+                    # Add default value if exists
+                    if column.default is not None:
+                        if hasattr(column.default, 'arg'):
+                            default_val = column.default.arg
+                            if isinstance(default_val, str):
+                                default = f"DEFAULT '{default_val}'"
+                            elif isinstance(default_val, bool):
+                                default = f"DEFAULT {str(default_val).upper()}"
+                            else:
+                                default = f"DEFAULT {default_val}"
+
+                    # For nullable columns, don't add NOT NULL on creation
+                    if column.nullable:
+                        nullable = ""
+                    else:
+                        # Add NOT NULL only if there's a default or table is empty
+                        nullable = ""
+
+                    sql = f"ALTER TABLE {table_name} ADD COLUMN IF NOT EXISTS {col_name} {col_type} {default} {nullable}".strip()
+
+                    print(f"   • Adding {table_name}.{col_name} ({col_type})")
+                    conn.execute(text(sql))
+
+                conn.commit()
+
+        print("\n✅ All missing columns added successfully!")
+        return True
+
+    except Exception as e:
+        print(f"\n❌ Error adding columns: {e}")
+        return False
+
+def verify_database() -> bool:
     """Verify database connection and structure"""
     try:
         inspector = inspect(engine)
@@ -77,66 +144,120 @@ def verify_database():
         expected_tables = ['users', 'kuisioners', 'questions', 'responses']
 
         print("\n✅ Database Verification:")
+        all_good = True
+
         for table in expected_tables:
             if table in tables:
                 columns = inspector.get_columns(table)
                 print(f"   ✓ {table}: {len(columns)} columns")
             else:
                 print(f"   ✗ {table}: MISSING")
-                return False
+                all_good = False
 
-        return True
+        return all_good
+
     except Exception as e:
         print(f"   ✗ Verification failed: {e}")
         return False
 
+def print_detailed_schema():
+    """Print detailed schema information"""
+    print("\n📊 Complete Database Schema:\n")
+
+    inspector = inspect(engine)
+    tables = ['users', 'kuisioners', 'questions', 'responses']
+
+    table_icons = {
+        'users': '👥',
+        'kuisioners': '📝',
+        'questions': '❓',
+        'responses': '💬'
+    }
+
+    for table in tables:
+        if table not in inspector.get_table_names():
+            continue
+
+        columns = inspector.get_columns(table)
+        print(f"{table_icons.get(table, '📋')} {table.upper()} ({len(columns)} columns):")
+
+        for col in columns:
+            nullable = "NULL" if col['nullable'] else "NOT NULL"
+            default = f", default={col['default']}" if col['default'] else ""
+            print(f"   • {col['name']}: {col['type']} ({nullable}{default})")
+        print()
+
 def setup_database():
-    """Create all tables in the database"""
-    print("=" * 60)
-    print("🔧 KuisNesa Database Setup")
-    print("=" * 60)
-    print("\n📦 Creating database tables...")
-    print("   Models: User, Kuisioner, Question, Response")
+    """Main setup function with auto-migration"""
+    print("=" * 70)
+    print("🔧 KuisNesa Database Setup - Enhanced with Auto-Migration")
+    print("=" * 70)
+    print("\n📦 Step 1: Creating tables (if not exist)...")
 
     try:
         # Create all tables
         Base.metadata.create_all(bind=engine)
+        print("✅ Tables created/verified")
 
-        print("\n✅ Database setup completed successfully!")
-        print("\n📋 Tables created:")
-        print("   - users (with photo_url and unified role)")
-        print("   - kuisioners (with header_image and access control)")
-        print("   - questions (with required field flag)")
-        print("   - responses (with unique constraint)")
+        # Detect missing columns
+        print("\n📦 Step 2: Checking schema synchronization...")
+        missing_columns = detect_missing_columns()
 
-        # Print detailed structure
-        print_table_structure()
+        # Add missing columns
+        if missing_columns:
+            print("\n📦 Step 3: Migrating database schema...")
+            if not add_missing_columns(missing_columns):
+                print("\n⚠️  Some columns could not be added. Manual intervention may be required.")
+                return False
+        else:
+            print("\n📦 Step 3: Migration not needed - schema is up to date!")
 
-        # Verify creation
-        if verify_database():
-            print("\n" + "=" * 60)
-            print("🎉 SUCCESS! Database is ready to use!")
-            print("=" * 60)
-            print("\n🚀 Next steps:")
-            print("   1. Start the application:")
-            print("      uvicorn main:app --host 0.0.0.0 --port 8000 --reload")
-            print("\n   2. Access the application:")
-            print("      http://localhost:8000")
-            print("\n   3. Login with Google UNESA account")
-            print("\n   4. Create kuisioner and enjoy 9 visualizations:")
-            print("      • Bar Chart          • Pie Chart")
-            print("      • Word Cloud         • Sentiment Analysis")
-            print("      • Word Frequency     • Response Length")
-            print("      • Top Contributors   • Keyword Analysis")
-            print("      • Statistics Dashboard")
-            print("\n📊 Text Analytics Features:")
-            print("   • LDA Topic Modeling (3 topics)")
-            print("   • TF-IDF Keyword Extraction (top 10)")
-            print("   • Sentiment Analysis (positive/neutral/negative)")
-            print("   • Comprehensive text statistics")
-            print("\n💡 API Endpoint:")
-            print("   GET /kuisioner/{id}/analytics - JSON data")
-            print("=" * 60)
+        # Verify everything
+        print("\n📦 Step 4: Final verification...")
+        if not verify_database():
+            print("\n⚠️  Verification failed. Please check the errors above.")
+            return False
+
+        # Print detailed schema
+        print_detailed_schema()
+
+        # Success message
+        print("=" * 70)
+        print("🎉 SUCCESS! Database is ready to use!")
+        print("=" * 70)
+        print("\n🚀 Next steps:")
+        print("   1. Start the application:")
+        print("      uvicorn main:app --host 0.0.0.0 --port 8000 --reload")
+        print("\n   2. Access the application:")
+        print("      https://kuisnesa.nauval.site")
+        print("\n   3. Login with Google UNESA account")
+        print("\n   4. Create kuisioner and enjoy 9 visualizations:")
+        print("      • Bar Chart          • Pie Chart")
+        print("      • Word Cloud         • Sentiment Analysis")
+        print("      • Word Frequency     • Response Length")
+        print("      • Top Contributors   • Keyword Analysis")
+        print("      • Statistics Dashboard")
+        print("\n📊 Text Analytics Features:")
+        print("   • LDA Topic Modeling (3 topics)")
+        print("   • TF-IDF Keyword Extraction (top 10)")
+        print("   • Sentiment Analysis (positive/neutral/negative)")
+        print("   • Comprehensive text statistics")
+        print("\n💡 Features:")
+        print("   ✓ Auto-detect missing columns")
+        print("   ✓ Auto-migrate database schema")
+        print("   ✓ Sync models with database")
+        print("   ✓ No manual ALTER TABLE needed")
+        print("\n💾 Database Schema:")
+        print("   • users (5 fields) - with photo_url, unified role")
+        print("   • kuisioners (10 fields) - with header_image, access control")
+        print("   • questions (8 fields) - with required flag")
+        print("   • responses (4 fields) - with unique constraint")
+        print("\n📖 API Endpoints:")
+        print("   GET  /kuisioner/{id}/stats      - HTML analytics page")
+        print("   GET  /kuisioner/{id}/analytics  - JSON data")
+        print("=" * 70)
+
+        return True
 
     except Exception as e:
         print("\n❌ Error setting up database:")
@@ -147,18 +268,18 @@ def setup_database():
         print("\n   2. Check if database exists:")
         print("      psql -U postgres -c '\\l' | grep kuisioner")
         print("\n   3. Create database if needed:")
-        print("      createdb -U kuisioner_user kuisioner_db")
+        print("      psql -U postgres")
+        print("      CREATE DATABASE kuisioner_db OWNER kuisioner_user;")
         print("\n   4. Verify .env file has correct DATABASE_URL:")
         print("      postgresql://kuisioner_user:password@localhost:5432/kuisioner_db")
-        print("\n   5. Check user permissions:")
-        print("      psql -U postgres")
-        print("      GRANT ALL PRIVILEGES ON DATABASE kuisioner_db TO kuisioner_user;")
-        print("\n   6. Test connection:")
-        print("      psql -U kuisioner_user -d kuisioner_db -c 'SELECT version();'")
+        print("\n   5. Test connection:")
+        print("      python3 -c 'from database import engine; engine.connect()'")
         print("\n📖 For detailed setup instructions, see SETUP_DATABASE.md")
-        return False
 
-    return True
+        import traceback
+        traceback.print_exc()
+
+        return False
 
 if __name__ == "__main__":
     success = setup_database()
