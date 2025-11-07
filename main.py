@@ -53,7 +53,18 @@ def create_kuisioner(title: str = Form(...), description: str = Form(None), back
 @app.get("/kuisioner/{kid}", response_class=HTMLResponse)
 def view_kuisioner(request: Request, kid: int, db: Session = Depends(get_db)):
     k = crud.get_kuisioner(db, kid)
-    return templates.TemplateResponse("kuisioner.html", {"request": request, "kuisioner": k})
+
+    # Generate share URL and QR code
+    base_url = os.getenv("BASE_URL", "https://kuisnesa.nauval.site")
+    share_url = f"{base_url}/survey/{kid}"
+    qr_path = utils.generate_qr_code(share_url, f"kuisioner_{kid}.png")
+
+    return templates.TemplateResponse("kuisioner.html", {
+        "request": request,
+        "kuisioner": k,
+        "share_url": share_url,
+        "qr_path": "/" + qr_path
+    })
 
 @app.post("/kuisioner/{kid}/add_question")
 def add_question(kid: int, text: str = Form(...), qtype: str = Form("short_text"), options: str = Form(None), media: str = Form(None), db: Session = Depends(get_db)):

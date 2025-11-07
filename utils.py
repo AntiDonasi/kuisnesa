@@ -621,3 +621,25 @@ def create_comprehensive_stats_chart(responses, filename: str):
     plt.savefig(path, dpi=200, bbox_inches='tight', facecolor='white')
     plt.close()
     return path
+
+# ============= QR CODE GENERATION =============
+def generate_qr_code(url: str, filename: str) -> str:
+    """Generate QR code for given URL"""
+    import qrcode
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    path = os.path.join(BASE_DIR, "qr", filename)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.save(path)
+
+    return path
