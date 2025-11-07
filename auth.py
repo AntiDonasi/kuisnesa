@@ -1,6 +1,10 @@
 import os, httpx
 from itsdangerous import URLSafeSerializer
 from fastapi import HTTPException
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
