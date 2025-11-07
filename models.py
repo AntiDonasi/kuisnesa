@@ -8,7 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     nama = Column(String(100))
     email = Column(String(120), unique=True, index=True)
-    role = Column(String(20), default="mahasiswa")  # mahasiswa/dosen/public
+    role = Column(String(20), default="user")  # All users have same role
     photo_url = Column(String(500), nullable=True)  # Google profile photo
 
     kuisioners = relationship("Kuisioner", back_populates="owner")

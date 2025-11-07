@@ -1,7 +1,7 @@
 import models, json
 from sqlalchemy.orm import Session
 
-def get_or_create_user(db: Session, email: str, nama: str, role: str = "mahasiswa", photo_url: str = None):
+def get_or_create_user(db: Session, email: str, nama: str, role: str = "user", photo_url: str = None):
     user = db.query(models.User).filter(models.User.email == email).first()
     if user:
         # Update existing user's name and photo if provided

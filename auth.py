@@ -12,9 +12,6 @@ REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/auth/call
 
 serializer = URLSafeSerializer(os.getenv("SECRET_KEY", "supersecret"))
 
-STUDENT_DOMAIN = "mhs.unesa.ac.id"
-STAFF_DOMAIN = "unesa.ac.id"
-
 def get_login_url(state: str):
     return (
         "https://accounts.google.com/o/oauth2/v2/auth"
@@ -44,12 +41,3 @@ async def get_user_info(code: str):
             headers={"Authorization": f"Bearer {access_token}"},
         )
         return userinfo_res.json()
-
-def determine_role(email: str):
-    domain = email.split("@")[-1]
-    if domain == STAFF_DOMAIN:
-        return "dosen"
-    elif domain == STUDENT_DOMAIN:
-        return "mahasiswa"
-    else:
-        return "public"
