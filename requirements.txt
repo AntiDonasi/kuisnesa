@@ -12,3 +12,6 @@ pandas
 matplotlib
 wordcloud
 python-multipart
+scikit-learn
+textblob
+numpy

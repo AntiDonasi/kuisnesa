@@ -79,7 +79,51 @@ def export_csv(kid: int, db: Session = Depends(get_db)):
 
 @app.get("/kuisioner/{kid}/stats", response_class=HTMLResponse)
 def stats(request: Request, kid: int, db: Session = Depends(get_db)):
+    k = crud.get_kuisioner(db, kid)
     res = crud.get_responses_by_kuisioner(db, kid)
+
+    # Generate charts
     chart = utils.chart_distribution(res, f"chart_{kid}.png")
     wc = utils.generate_wordcloud(res, f"wc_{kid}.png")
-    return templates.TemplateResponse("stats.html", {"request": request, "chart": "/" + chart, "wc": "/" + wc})
+
+    # Get text analytics
+    topics = utils.lda_topic_modeling(res, n_topics=3, n_words=5) if len(res) >= 3 else None
+    keywords = utils.extract_keywords(res, top_n=10)
+    sentiment = utils.analyze_sentiment(res)
+    text_stats = utils.text_statistics(res)
+
+    return templates.TemplateResponse("stats.html", {
+        "request": request,
+        "kuisioner": k,
+        "chart": "/" + chart,
+        "wc": "/" + wc,
+        "topics": topics,
+        "keywords": keywords,
+        "sentiment": sentiment,
+        "text_stats": text_stats
+    })
+
+@app.get("/kuisioner/{kid}/analytics")
+def text_analytics(kid: int, db: Session = Depends(get_db)):
+    """
+    Comprehensive text analytics endpoint
+    Returns: LDA topics, keywords, sentiment analysis, and text statistics
+    """
+    res = crud.get_responses_by_kuisioner(db, kid)
+
+    if not res:
+        return {"error": "No responses found for this kuisioner"}
+
+    # Perform all text analytics
+    topics = utils.lda_topic_modeling(res, n_topics=3, n_words=5)
+    keywords = utils.extract_keywords(res, top_n=10)
+    sentiment = utils.analyze_sentiment(res)
+    stats = utils.text_statistics(res)
+
+    return {
+        "kuisioner_id": kid,
+        "lda_topics": topics,
+        "keywords": keywords,
+        "sentiment_analysis": sentiment,
+        "text_stats": stats
+    }
